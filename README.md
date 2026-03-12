@@ -104,13 +104,50 @@ Adds a linear covariate term to the BT log-odds:
 
 ---
 
+## Convergence diagnostics (Bayesian models)
+
+We run standard MCMC diagnostics to confirm the posterior samples are reliable:
+
+### ArviZ summary (R-hat, ESS, intervals)
+- `az.summary(trace)` is used to report:
+  - **R-hat** (Gelman–Rubin): convergence across chains  
+    - Target: **≈ 1.00** (rule-of-thumb: **< 1.01**)
+  - **ESS** (effective sample size): sampling efficiency  
+    - Higher is better; low ESS indicates high autocorrelation
+  - Posterior mean / sd and credible intervals (HDI)
+
+### Trace plots (mixing + stationarity)
+- `az.plot_trace(trace, var_names=[...])` is generated for key parameters:
+  - Static BT: `theta`
+  - Dynamic BT: `sigma`, `theta_0` (and optionally selected `theta[:, t]`)
+  - Covariate model: `beta_*`, `intercept`, `sigma`
+
+A well-behaved trace shows:
+- good chain mixing (overlap across chains),
+- no visible drift/trends,
+- stable posterior region after warm-up.
+
+### Divergence checks (NUTS)
+We monitor NUTS pathologies:
+- **divergences** (should be 0; otherwise increase `target_accept` or reparameterize)
+- **tree depth saturations**
+- suspicious energy transitions
+
+### Practical acceptance criteria (used in this project)
+- **R-hat < 1.01** for parameters inspected
+- **No (or negligible) divergences**
+- **Reasonable ESS** for key parameters
+
+> If diagnostics fail, recommended fixes include: increasing `tune`, increasing `target_accept` (e.g., 0.95), simplifying the model (fewer players/time periods), or tightening priors.
+
+---
+
 ## Evaluation
 
 Models are evaluated on the strictly held-out tournament using:
 - **Log loss** (cross-entropy)
 - **Brier score**
 - **Calibration curves** (reliability plots)
-- Bayesian diagnostics (**R-hat**, **ESS**, trace plots) for MCMC fits
 
 Interpretation tips:
 - Lower **log loss/Brier** → better probabilistic accuracy
@@ -121,20 +158,19 @@ Interpretation tips:
 
 ## Tournament simulation
 
-The notebook includes posterior-predictive **single-elimination bracket simulation**:
+Posterior-predictive **single-elimination bracket simulation**:
 - Uses posterior draws of player skills at a chosen time period
 - Simulates thousands of tournament runs to estimate:
   - probability of reaching each round
   - probability of winning the title
 
-It also supports **multiple bracket scenarios** (seeded vs randomized) and generates comparison charts.
+Also supports **multiple bracket scenarios** (seeded vs randomized) and generates comparison charts.
 
 ---
 
 ## Results & assets (included in this repo)
 
 ### 1) Model evaluation summary
-
 **File:** `evaluation_summary.csv`
 
 | model                          |   log_loss |   brier_score |   mean_pred |   std_pred |
@@ -145,12 +181,9 @@ It also supports **multiple bracket scenarios** (seeded vs randomized) and gener
 | Static BT — MCMC               |     0.5724 |        0.1951 |      0.5000 |     0.2072 |
 | Freq. BT — Ridge MLE           |     0.5727 |        0.1951 |      0.5000 |     0.2020 |
 
-> `std_pred` is the standard deviation of predicted probabilities across test matches (helpful for spotting over/under-confidence).
-
 ---
 
 ### 2) Top players by posterior mean skill (test period)
-
 **File:** `top_players_test_period.csv`
 
 | player             |   player_id |   skill_mean |
@@ -169,7 +202,6 @@ It also supports **multiple bracket scenarios** (seeded vs randomized) and gener
 ---
 
 ### 3) Example bracket simulation output
-
 **File:** `example_bracket_simulation.csv`
 
 | player              |   Reach R1 |   Reach R2 |   Reach R3 |   Title |
@@ -188,30 +220,15 @@ It also supports **multiple bracket scenarios** (seeded vs randomized) and gener
 ### 4) Multi-scenario tournament simulations (CSV + plots)
 
 **Files:**
-- `multiple_tournament_simulations.csv` (scenario/player/title probabilities)
+- `multiple_tournament_simulations.csv`
 - `multiple_tournament_simulations_title_probabilities.png`
 - `multiple_tournament_simulations_avg_title_probability.png`
 
-#### Title probability by scenario (plot)
-
+#### Title probability by scenario
 ![Tournament simulation comparison — title probability by scenario](multiple_tournament_simulations_title_probabilities.png)
 
-#### Average title probability across scenarios (plot)
-
+#### Average title probability across scenarios
 ![Average title probability across tournament scenarios](multiple_tournament_simulations_avg_title_probability.png)
-
-#### Scenario table snippet (title probabilities)
-
-| player             |   Scenario 1 - Seeded |   Scenario 2 - Randomized |   Scenario 3 - Randomized |   Scenario 4 - Randomized |   Scenario 5 - Randomized |
-|:-------------------|----------------------:|--------------------------:|--------------------------:|--------------------------:|--------------------------:|
-| Carlos Alcaraz     |                 0.403 |                     0.409 |                     0.389 |                     0.403 |                     0.406 |
-| Novak Djokovic     |                 0.256 |                     0.261 |                     0.255 |                     0.233 |                     0.248 |
-| Holger Rune        |                 0.096 |                     0.091 |                     0.093 |                     0.100 |                     0.083 |
-| Daniil Medvedev    |                 0.085 |                     0.079 |                     0.085 |                     0.089 |                     0.105 |
-| Andrey Rublev      |                 0.059 |                     0.070 |                     0.057 |                     0.073 |                     0.056 |
-| Stefanos Tsitsipas |                 0.044 |                     0.035 |                     0.050 |                     0.045 |                     0.044 |
-| Alexander Zverev   |                 0.027 |                     0.029 |                     0.035 |                     0.028 |                     0.033 |
-| Casper Ruud        |                 0.029 |                     0.023 |                     0.033 |                     0.028 |                     0.025 |
 
 ---
 
