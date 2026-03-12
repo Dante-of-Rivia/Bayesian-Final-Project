@@ -1,5 +1,3 @@
-# Posterior on the Baseline: Bayesian Tennis Tournament Predictions
-
 # Bayesian Tennis Tournament Predictions (Bradley–Terry)
 
 Bayesian Bradley–Terry (BT) pipeline for **ATP tennis match prediction** and **tournament simulation**. We implement **static** and **dynamic** (time-varying) player-strength models in PyMC, optionally add **pre-match covariates**, and compare them against a **regularized frequentist BT baseline (ridge MLE)**.
