@@ -1,0 +1,18 @@
+# Core scientific stack
+numpy
+pandas
+scipy
+
+# Bayesian inference
+pymc
+pytensor
+arviz
+numpyro
+jax
+jaxlib
+
+# Machine learning / evaluation
+scikit-learn
+
+# Visualisation
+matplotlib
