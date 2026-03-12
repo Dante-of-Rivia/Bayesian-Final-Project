@@ -236,3 +236,17 @@ Recommended: Python **3.10+**.
 
 ```bash
 pip install numpy pandas scipy matplotlib scikit-learn pymc pytensor arviz numpyro
+```
+
+### Data location
+
+By default the notebook reads ATP match CSVs **directly from the web** using
+Jeff Sackmann's raw GitHub URLs — no manual download is required.
+
+If you prefer to work offline, download the yearly files from
+https://github.com/JeffSackmann/tennis_atp into a local `data/` directory and
+update `DATA_DIR` in the CONFIG block at the top of the notebook:
+
+```python
+DATA_DIR = "data"   # local path
+
